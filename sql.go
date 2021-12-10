@@ -120,7 +120,7 @@ func Format(query string, args ...interface{}) string {
 	return sql.String()
 }
 
-//Format format the sql with args
+//FormatInLocation format the sql with args
 func FormatInLocation(query string, loc *time.Location, args ...interface{}) string {
 
 	if len(args) == 0 {
