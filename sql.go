@@ -76,7 +76,7 @@ func EscapeInLocation(val interface{}, loc *time.Location) string {
 			return nullStr
 		}
 
-		if refValue.IsNil() {
+		if refValue.Kind() == reflect.Ptr && refValue.IsNil() {
 			return nullStr
 		}
 
