@@ -13,6 +13,13 @@ func TestNULLEscape(t *testing.T) {
 	}
 }
 
+func TestEmptyStringEscape(t *testing.T) {
+	result := Escape("")
+	t.Logf("result :%s", result)
+	if result != "''" {
+		t.Fatalf("escape empty string error")
+	}
+}
 func TestBoolEscape(t *testing.T) {
 
 	result := Escape(true)
