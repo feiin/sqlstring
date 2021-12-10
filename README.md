@@ -5,7 +5,7 @@ Simple SQL escape and format
 
 ## Escaping sql values
 
-```
+```golang
 //Format
 sql := sqlstring.Format("select * from users where name=? and age=? limit ?,?", "t'est", 10, 10, 10)
 
