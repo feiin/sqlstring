@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	tmFmtZero   = "0000-00-00 00:00:00"
-	tmFmtWithMS = "2006-01-02 15:04:05.999"
-	escaper     = "'"
-	nullStr     = "NULL"
+	tmFmtZero          = "0000-00-00 00:00:00"
+	tmFmtWithMS        = "2006-01-02 15:04:05.999"
+	escaper            = "'"
+	nullStr            = "NULL"
+	singleQuoteEscaper = "\\"
 )
 
 //Escape escape the val for sql
@@ -69,7 +70,7 @@ func EscapeInLocation(val interface{}, loc *time.Location) string {
 		return fmt.Sprintf("%.6f", v)
 
 	case string:
-		return escaper + strings.Replace(v, escaper, "\\"+escaper, -1) + escaper
+		return escaper + strings.Replace(v, escaper, singleQuoteEscaper+escaper, -1) + escaper
 	default:
 		refValue := reflect.ValueOf(v)
 		if v == nil || !refValue.IsValid() {
@@ -93,7 +94,7 @@ func EscapeInLocation(val interface{}, loc *time.Location) string {
 		if err != nil {
 			return nullStr
 		}
-		return escaper + strings.Replace(string(stringifyData), escaper, "\\"+escaper, -1) + escaper
+		return escaper + strings.Replace(string(stringifyData), escaper, singleQuoteEscaper+escaper, -1) + escaper
 
 	}
 }
@@ -140,4 +141,9 @@ func FormatInLocation(query string, loc *time.Location, args ...interface{}) str
 		sql.WriteRune(v)
 	}
 	return sql.String()
+}
+
+//SetSingleQuoteEscaper set the singleQuoteEscaper
+func SetSingleQuoteEscaper(escaper string) {
+	singleQuoteEscaper = escaper
 }

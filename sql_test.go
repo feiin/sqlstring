@@ -87,6 +87,24 @@ func TestStringEscape(t *testing.T) {
 	}
 }
 
+func TestStringCustomEscape(t *testing.T) {
+	s := "hello world"
+	SetSingleQuoteEscaper("'")
+	result := Escape(s)
+	if result != "'hello world'" {
+		t.Fatalf("escape string error")
+
+	}
+
+	s = "hello ' world"
+	result = Escape(s)
+	t.Logf("TestStringCustomEscape result: %s", result)
+	if result != "'hello '' world'" {
+		t.Fatalf("escape string error")
+
+	}
+}
+
 func TestBytesEscape(t *testing.T) {
 	s := []byte{0, 1, 254, 255}
 	result := Escape(s)
