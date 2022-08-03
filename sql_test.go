@@ -13,6 +13,14 @@ func TestNULLEscape(t *testing.T) {
 	}
 }
 
+func Test0Escape(t *testing.T) {
+	result := Escape(`\0`)
+	t.Logf("Test0Escape result: %s", result)
+	if result != `'\\\\0'` {
+		t.Fatalf("escape error")
+	}
+}
+
 func TestEmptyStringEscape(t *testing.T) {
 	result := Escape("")
 	t.Logf("result :%s", result)
@@ -87,9 +95,27 @@ func TestStringEscape(t *testing.T) {
 	}
 }
 
+func TestStringEscape2(t *testing.T) {
+	s := "hello world"
+	result := Escape(s)
+	if result != "'hello world'" {
+		t.Fatalf("escape string error")
+
+	}
+
+	s = `hello \' world`
+	t.Logf("TestStringEscape2 raw:%s", s)
+	result = Escape(s)
+	t.Logf("TestStringEscape2 result: %s", result)
+	if result != `'hello \\\\\' world'` {
+		t.Fatalf("escape string error")
+
+	}
+}
+
 func TestStringCustomEscape(t *testing.T) {
 	s := "hello world"
-	SetSingleQuoteEscaper("'")
+	SetSingleQuoteEscaper("''")
 	result := Escape(s)
 	if result != "'hello world'" {
 		t.Fatalf("escape string error")
@@ -103,6 +129,8 @@ func TestStringCustomEscape(t *testing.T) {
 		t.Fatalf("escape string error")
 
 	}
+	SetSingleQuoteEscaper("\\'")
+
 }
 
 func TestBytesEscape(t *testing.T) {
@@ -210,8 +238,80 @@ func TestOtherEscape(t *testing.T) {
 	result := Escape(x)
 	t.Logf("escape reuslt %s", result)
 
-	if result != "'{\"key\":\"test\",\"name\":\"asd\\'fsadf\"}'" {
+	if result != `'{\\"key\\":\\"test\\",\\"name\\":\\"asd\'fsadf\\"}'` {
 		t.Fatalf("escape map error")
+
+	}
+
+}
+
+func TestNewlineEscape(t *testing.T) {
+	s := "hello\nworld"
+	result := Escape(s)
+	t.Logf("escape newline reuslt: %s", result)
+
+	if result != "'hello\\\\nworld'" {
+		t.Fatalf("escape string error")
+
+	}
+
+}
+
+func TestReturnEscape(t *testing.T) {
+	s := "hello\rworld"
+	result := Escape(s)
+	t.Logf("escape newline reuslt: %s", result)
+
+	if result != "'hello\\\\rworld'" {
+		t.Fatalf("escape string error")
+
+	}
+
+}
+
+func TestTabEscape(t *testing.T) {
+	s := "hello\tworld"
+	result := Escape(s)
+	t.Logf("escape tab reuslt: %s", result)
+
+	if result != `'hello\\tworld'` {
+		t.Fatalf("escape string error")
+
+	}
+
+}
+
+func TestDoubleBackslashEscape(t *testing.T) {
+	s := "hello\\world"
+	result := Escape(s)
+	t.Logf("escape tab reuslt: %s", result)
+
+	if result != `'hello\\\\world'` {
+		t.Fatalf("escape string error")
+
+	}
+
+}
+
+func TestCtrlZEscape(t *testing.T) {
+	s := "hello\x1aworld"
+	result := Escape(s)
+	t.Logf("escape tab reuslt: %s", result)
+
+	if result != `'hello\\Zworld'` {
+		t.Fatalf("escape string error")
+
+	}
+
+}
+
+func TestDoubleQouteEscape(t *testing.T) {
+	s := "hello \" world"
+	result := Escape(s)
+	t.Logf("escape tab reuslt: %s", result)
+
+	if result != `'hello \\" world'` {
+		t.Fatalf("escape string error")
 
 	}
 
@@ -281,5 +381,12 @@ func TestFormatSql(t *testing.T) {
 	if sql != "a='2021-01-01 15:00:09'" {
 		t.Fatalf("escape format time error")
 
+	}
+
+	sql = Format("select * from users where name=? and age=? limit ?,?", `t\'est`, 10, 10, 10)
+
+	if sql != `'select * from users where name='t\\\\\'est' and age=10 limit 10,10'` {
+
+		t.Logf("sql: %s\n", sql)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -16,11 +17,39 @@ var (
 	escaper            = "'"
 	nullStr            = "NULL"
 	singleQuoteEscaper = "\\"
+	escapeRegexp       = regexp.MustCompile(`[\0\t\x1a\n\r\"\'\\]`)
+
+	//see href='https://dev.mysql.com/doc/refman/8.0/en/string-literals.html#character-escape-sequences'
+	characterEscapeMap = map[string]string{
+		"\\0":  `\\0`,  //ASCII NULL
+		"\b":   `\\b`,  //backspace
+		"\t":   `\\t`,  //tab
+		"\x1a": `\\Z`,  //ASCII 26 (Control+Z);
+		"\n":   `\\n`,  //newline character
+		"\r":   `\\r`,  //return character
+		"\"":   `\\"`,  //quote (")
+		"'":    `\'`,   //quote (')
+		"\\":   `\\\\`, //backslash (\)
+		// "\\%":  `\\%`,  //% character
+		// "\\_":  `\\_`,  //_ character
+	}
 )
 
 //Escape escape the val for sql
 func Escape(val interface{}) string {
 	return EscapeInLocation(val, time.Local)
+}
+
+//toSqlString escape the string val for sql
+func toSqlString(val string) string {
+	return escapeRegexp.ReplaceAllStringFunc(val, func(s string) string {
+
+		mVal, ok := characterEscapeMap[s]
+		if ok {
+			return mVal
+		}
+		return s
+	})
 }
 
 func timeToString(t time.Time, loc *time.Location) string {
@@ -70,7 +99,7 @@ func EscapeInLocation(val interface{}, loc *time.Location) string {
 		return fmt.Sprintf("%.6f", v)
 
 	case string:
-		return escaper + strings.Replace(v, escaper, singleQuoteEscaper+escaper, -1) + escaper
+		return escaper + toSqlString(v) + escaper
 	default:
 		refValue := reflect.ValueOf(v)
 		if v == nil || !refValue.IsValid() {
@@ -94,7 +123,7 @@ func EscapeInLocation(val interface{}, loc *time.Location) string {
 		if err != nil {
 			return nullStr
 		}
-		return escaper + strings.Replace(string(stringifyData), escaper, singleQuoteEscaper+escaper, -1) + escaper
+		return escaper + toSqlString(string(stringifyData)) + escaper
 
 	}
 }
@@ -144,6 +173,9 @@ func FormatInLocation(query string, loc *time.Location, args ...interface{}) str
 }
 
 //SetSingleQuoteEscaper set the singleQuoteEscaper
+//default:\' , e.g. '' 、 \'
 func SetSingleQuoteEscaper(escaper string) {
-	singleQuoteEscaper = escaper
+
+	characterEscapeMap["'"] = escaper
+	// singleQuoteEscaper = escaper
 }
